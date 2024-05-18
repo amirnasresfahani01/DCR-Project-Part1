@@ -9,7 +9,7 @@ def insert_files_into_table(directory, connection):
                 file_name, file_extension = os.path.splitext(file)
                 file_size = os.path.getsize(file_path)
                 last_modified = datetime.fromtimestamp(os.path.getmtime(file_path))
-                text_content = "File content is too long to display."  # Use a placeholder message
+                text_content = "File content is too long to display." 
                 if file_extension.lower() == '.html':
                     try:
                         with open(file_path, 'r', encoding='utf-8') as file:
