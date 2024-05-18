@@ -1,0 +1,37 @@
+def insert_files_into_table(directory, connection):
+    try:
+        cursor = connection.cursor()
+        # Truncate the table to remove existing data
+        cursor.execute("TRUNCATE TABLE all_files")
+        for root, _, files in os.walk(directory):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_name, file_extension = os.path.splitext(file)
+                file_size = os.path.getsize(file_path)
+                last_modified = datetime.fromtimestamp(os.path.getmtime(file_path))
+                text_content = "File content is too long to display."  # Use a placeholder message
+                if file_extension.lower() == '.html':
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as file:
+                            html_content = file.read()
+                            soup = BeautifulSoup(html_content, 'html.parser')
+                            text_content = soup.get_text()
+                    except Exception as e:
+                        print(f"Error reading {file_path}: {e}")
+                        text_content = "Error reading file"
+                elif file_extension.lower() in ['.txt', '.log', '.csv']:
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as file:
+                            text_content = file.read()
+                    except Exception as e:
+                        print(f"Error reading {file_path}: {e}")
+                        text_content = "Error reading file"
+
+                cursor.execute("""
+                    INSERT INTO all_files (file_name, full_path, file_type, file_size, last_modified, text_content)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (file_name, file_path, file_extension, file_size, last_modified, text_content))
+        connection.commit()
+        print("Files inserted into 'all_files' table successfully")
+    except mysql.connector.Error as error:
+        print("Error inserting files:", error)
